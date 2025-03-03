@@ -3,6 +3,7 @@
 #include "../inc/index.h" 
 #include "../inc/graph_page.h"  // Подключаем страницу графика
 #include <EEPROM.h>
+#include <math.h>
 
 // Настройки точки доступа
 const char* ap_ssid = "ESP_AP";        // SSID вашей точки доступа
@@ -15,7 +16,6 @@ ESP8266WebServer server(80);
 float SetPoint = 36.6;          // Начальная температура
 float CurrentTemp = 0.0;        // Текущая температура с АЧТ
 String LastRecvd = "none yet";  // Последняя полученная команда
-bool saveEnabled = false;       // Флаг для запоминания температуры
 
 // Структура для хранения данных от АЧТ
 typedef struct {
@@ -38,13 +38,16 @@ int LLL = 0; // Длина SVG-строки
 // Константы для EEPROM
 #define EEPROM_SIZE 512
 #define SETPOINT_ADDR 0
-#define SAVE_FLAG_ADDR sizeof(float)
+
+// --- Новые переменные для отслеживания статуса температуры ---
+unsigned long targetAchievedStart = 0; // время начала нахождения в пределах допуска ±0.05 (для достижения)
+unsigned long targetLostStart = 0;     // время начала отклонения от допустимого диапазона после достижения
+bool targetReached = false;            // флаг: достигнута ли целевая температура
 
 // Сохранение настроек в EEPROM
 void saveSettings() {
   EEPROM.begin(EEPROM_SIZE);
   EEPROM.put(SETPOINT_ADDR, SetPoint);
-  EEPROM.put(SAVE_FLAG_ADDR, saveEnabled);
   EEPROM.commit();
   EEPROM.end();
 }
@@ -53,7 +56,6 @@ void saveSettings() {
 void loadSettings() {
   EEPROM.begin(EEPROM_SIZE);
   EEPROM.get(SETPOINT_ADDR, SetPoint);
-  EEPROM.get(SAVE_FLAG_ADDR, saveEnabled);
   EEPROM.end();
 
   // Проверка на корректность загруженного значения
@@ -62,8 +64,7 @@ void loadSettings() {
   }
 }
 
-
-// Функция формирования SVG-графика с адаптивным масштабированием и единой цветовой гаммой
+// Функция формирования SVG-графика (код оставлен без изменений)
 void drawGraph() {
   float minv, maxv, v, y, y2;
   int i, n, n2;
@@ -73,18 +74,15 @@ void drawGraph() {
   int graphWidth = L * HScale;
   int graphHeight = 50 * Scale;
   
-  // Адаптивный SVG с viewBox, width=100% и preserveAspectRatio
   out += "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"auto\" viewBox=\"0 0 ";
   out += String(graphWidth);
   out += " ";
   out += String(graphHeight);
   out += "\" preserveAspectRatio=\"xMidYMid meet\">";
   
-  // Фон и рамка графика, цвет согласован с титульной страницей
   out += "<rect width=\"" + String(graphWidth) + "\" height=\"" + String(graphHeight) + "\" fill=\"#ffffff\" stroke-width=\"1\" stroke=\"#000088\" />\n";
   out += "<g stroke=\"#000088\">\n";
   
-  // Инициализируем минимальное и максимальное значения
   minv = 20.0;
   maxv = 40.0;
   i = TStail;
@@ -129,28 +127,52 @@ void drawGraph() {
   server.send(200, "image/svg+xml; charset=utf-8", out);
 }
 
+// Обновление статуса достижения температуры
+void updateTargetStatus() {
+  float error = fabs(SetPoint - CurrentTemp);
+  unsigned long now = millis();
+  
+  if (error <= 0.05) {
+    // Если температура в пределах допуска
+    if (!targetReached) {
+      if (targetAchievedStart == 0) {
+        targetAchievedStart = now;
+      }
+      if (now - targetAchievedStart >= 5000) { // 5 секунд в пределах допуска
+        targetReached = true;
+        targetLostStart = 0; // сброс таймера потери достижения
+      }
+    } else {
+      // Если уже достигли, сбрасываем таймер потери
+      targetLostStart = 0;
+    }
+  } else {
+    // Температура вне допуска
+    targetAchievedStart = 0; // сброс таймера достижения
+    if (targetReached) {
+      if (targetLostStart == 0) {
+        targetLostStart = now;
+      }
+      if (now - targetLostStart >= 10000) { // 10 секунд вне допуска
+        targetReached = false;
+      }
+    }
+  }
+}
+
 // Обработчик корневой страницы
 void handleRoot() {
   String page = MAIN_page;
   page.replace("%SETPOINT%", String(SetPoint, 1));
   page.replace("%CURRENTTEMP%", String(CurrentTemp, 1));
   page.replace("%LASTCMD%", LastRecvd);
-  page.replace("%SAVEBUTTONCLASS%", saveEnabled ? "saveButton" : "");
-  page.replace("%SAVEBUTTONTEXT%", saveEnabled ? "Не запоминать последнюю температуру" : "Запомнить последнюю температуру");
   server.send(200, "text/html; charset=utf-8", page);
 }
 
-// Обработчик получения температуры (JSON)
+// Обработчик получения температуры (JSON) – добавлен флаг reached
 void handleGetTemp() {
-  String json = "{\"temp\": " + String(CurrentTemp, 1) + "}";
+  String json = "{\"temp\": " + String(CurrentTemp, 1) + ", \"reached\": " + String(targetReached ? "true" : "false") + "}";
   server.send(200, "application/json; charset=utf-8", json);
-}
-
-// Обработчик для переключения режима запоминания
-void handleToggleSave() {
-  saveEnabled = !saveEnabled;
-  saveSettings();
-  server.send(200, "text/plain", "OK");
 }
 
 // Отправка температуры на устройство через UART
@@ -159,18 +181,19 @@ void sendTemperatureToDevice(float temp) {
   Serial.println(command);
 }
 
-// Обработчик установки температуры
+// Обработчик установки температуры (с автоматическим сохранением)
 void handleSetTemp() {
   if (server.hasArg("temp")) {
     SetPoint = server.arg("temp").toFloat();
     LastRecvd = "Установлена температура: " + String(SetPoint);
     sendTemperatureToDevice(SetPoint);
+    saveSettings();  // Автоматическое сохранение установленной температуры
   }
   server.sendHeader("Location", "/");
   server.send(303);
 }
 
-// Новый обработчик, возвращающий значения датчиков в JSON
+// Обработчик для возвращения значений датчиков в JSON
 void handleSensors() {
   String json = "{";
   json += "\"sensor1\": " + String(D36.T[0], 2) + ",";
@@ -182,7 +205,7 @@ void handleSensors() {
   server.send(200, "application/json; charset=utf-8", json);
 }
 
-// Новый обработчик, возвращающий значения PID-регуляторов в JSON
+// Обработчик для возвращения значений PID-регуляторов в JSON
 void handlePids() {
   String json = "{";
   json += "\"pid1\": " + String(D36.CV[0]) + ",";
@@ -202,7 +225,7 @@ void Process_pline(char *s) {
 
   CurrentTemp = D36.T[4];
   
-  // Сохраняем значение в историю графика
+  // Сохранение значения в историю графика
   TStorage[TShead] = CurrentTemp;
   TShead = (TShead + 1) % L;
   if(TShead == TStail) {
@@ -236,7 +259,7 @@ void handleGraphSVG() {
   drawGraph();
 }
 
-// Обработчик, возвращающий HTML-страницу с графиком (содержащую код из graph_page.h)
+// Обработчик, возвращающий HTML-страницу с графиком (из graph_page.h)
 void handleGraphHTML() {
   server.send_P(200, "text/html; charset=utf-8", GRAPH_PAGE);
 }
@@ -257,11 +280,10 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/set_temp", handleSetTemp);
   server.on("/get_temp", handleGetTemp);
-  server.on("/sensors", handleSensors);      // Обработчик для датчиков
-  server.on("/pids", handlePids);            // Обработчик для PID-регуляторов
-  server.on("/toggle_save", handleToggleSave);  // Обработчик запоминания температуры
-  server.on("/graph_svg", handleGraphSVG);     // Возвращает только SVG-график
-  server.on("/graph", handleGraphHTML);          // HTML-страница с графиком
+  server.on("/sensors", handleSensors);
+  server.on("/pids", handlePids);
+  server.on("/graph_svg", handleGraphSVG);
+  server.on("/graph", handleGraphHTML);
   server.begin();
   Serial.println("Веб-сервер запущен");
   Serial.print("IP-адрес точки доступа: ");
@@ -271,5 +293,5 @@ void setup() {
 void loop() {
   server.handleClient();
   processSerialData();
+  updateTargetStatus();  // Обновляем статус достижения целевой температуры
 }
- 

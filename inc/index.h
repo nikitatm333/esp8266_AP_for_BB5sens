@@ -50,19 +50,6 @@ const char MAIN_page[] PROGMEM = R"=====(
         input[type='submit']:hover {
           background-color: #0056b3;
         }
-        .toggleButton {
-          padding: 5px 10px;
-          font-size: 14px;
-          color: white;
-          background-color: rgba(0, 123, 255, 0.5);
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          margin-bottom: 10px;
-        }
-        .toggleButton:hover {
-          background-color: rgba(0, 123, 255, 0.7);
-        }
         p { font-size: 1.2em; }
         @media (max-width: 480px) {
           .container {
@@ -79,7 +66,15 @@ const char MAIN_page[] PROGMEM = R"=====(
             fetch('/get_temp')
             .then(response => response.json())
             .then(data => {
+                // Обновляем значение текущей температуры (для отображения)
                 document.getElementById("currentTemp").innerText = data.temp;
+                // Меняем цвет фона поля ввода установленной температуры:
+                // Если достигнута целевая температура – зеленый, иначе – оранжевый
+                if(data.reached) {
+                  document.getElementById("tempInput").style.backgroundColor = "rgba(0,255,0,0.5)";
+                } else {
+                  document.getElementById("tempInput").style.backgroundColor = "rgba(255,165,0,0.5)";
+                }
             })
             .finally(() => { isFetching = false; });
         }
@@ -94,25 +89,12 @@ const char MAIN_page[] PROGMEM = R"=====(
             });
         }
 
-        function toggleSave() {
-            const saveButton = document.getElementById("saveButton");
-            
-            fetch('/toggle_save', { method: 'POST' })
-            .then(response => response.text())
-            .then(() => {
-                saveButton.innerText = (saveButton.innerText === "Запомнить последнюю температуру") 
-                    ? "Не запоминать последнюю температуру" 
-                    : "Запомнить последнюю температуру";
-            });
-        }
-
         setInterval(updateTemperature, 1000);
       </script>
      </head>
      <body>
       <div class="container">
         <h1>Управление температурой АЧТ</h1>
-        <button id="saveButton" onclick="toggleSave()" class="toggleButton">%SAVEBUTTONTEXT%</button>
         <form onsubmit="setTemperature(event)">
           <label for="tempInput">Установить температуру:</label><br>
           <input type="number" id="tempInput" name="temp" value="%SETPOINT%" step="0.1" min="-20" max="100"><br>
@@ -124,6 +106,6 @@ const char MAIN_page[] PROGMEM = R"=====(
       </div>
      </body>
     </html>
-    )=====";
+)=====";
     
 #endif
