@@ -30,6 +30,9 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
         color: #007BFF; 
         text-decoration: none; 
       }
+      .centerAlign {
+        text-align: center;
+      }
     </style>
     <script>
       function updateGraph() {
@@ -48,16 +51,16 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
         .then(responses => Promise.all(responses.map(r => r.json())))
         .then(([sensors, pids]) => {
           let html = "<h3>Датчики температуры</h3>";
-          html += "SENSOR_1: " + sensors.sensor1 + " °C<br>";
-          html += "SENSOR_2: " + sensors.sensor2 + " °C<br>";
-          html += "SENSOR_3: " + sensors.sensor3 + " °C<br>";
-          html += "SENSOR_4: " + sensors.sensor4 + " °C<br>";
-          html += "CENTER_SENSOR: " + sensors.central + " °C<br>";
+          html += "sensor_1: " + sensors.sensor1 + " °C<br>";
+          html += "sensor_2: " + sensors.sensor2 + " °C<br>";
+          html += "sensor_3: " + sensors.sensor3 + " °C<br>";
+          html += "sensor_4: " + sensors.sensor4 + " °C<br>";
+          html += "center_sensor: " + sensors.central + " °C<br>";
           html += "<h3>ПИД регуляторы</h3>";
-          html += "PID_1: " + pids.pid1 + "<br>";
-          html += "PID_2: " + pids.pid2 + "<br>";
-          html += "PID_3: " + pids.pid3 + "<br>";
-          html += "PID_4: " + pids.pid4 + "<br>";
+          html += "pid_1: " + pids.pid1 + "<br>";
+          html += "pid_2: " + pids.pid2 + "<br>";
+          html += "pid_3: " + pids.pid3 + "<br>";
+          html += "pid_4: " + pids.pid4 + "<br>";
           document.getElementById("sensorValues").innerHTML = html;
         });
       }
@@ -72,7 +75,7 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
     <div class="container">
       <div id="svgContainer"></div>
       <div id="sensorValues" style="margin-top:20px; font-size:1.2em;"></div>
-      <p><a href="/">Вернуться на главную</a></p>
+      <p class="centerAlign"><a href="/">Вернуться на главную</a></p>
     </div>
   </body>
 </html>

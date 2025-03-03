@@ -85,7 +85,7 @@ const char MAIN_page[] PROGMEM = R"=====(
             fetch('/set_temp?temp=' + tempValue, { method: 'POST' })
             .then(response => response.text())
             .then(() => {
-                document.getElementById("lastCmd").innerText = "Установлена температура " + tempValue + " °C";
+                document.getElementById("lastCmd").innerText = "Установить " + tempValue + " °C";
             });
         }
 
@@ -101,7 +101,7 @@ const char MAIN_page[] PROGMEM = R"=====(
           <input type="submit" value="Установить">
         </form>
         <p class="leftAlign"><b>Текущая температура центрального датчика:</b> <strong><span id="currentTemp">%CURRENTTEMP%</span> °C</strong></p>
-        <p class="leftAlign"><b>Последняя команда:</b> <strong><span id="lastCmd">%LASTCMD%</span></strong></p>
+        <p class="leftAlign"><b>Последняя команда:</b> <br> <strong><span id="lastCmd">%LASTCMD%</span></strong></p>
         <p><a href="/graph">Подробно</a></p>
       </div>
      </body>
