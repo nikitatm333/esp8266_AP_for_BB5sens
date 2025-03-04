@@ -1,10 +1,12 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-void loadSettings();
-void saveSettings();
+void loadSettingsTemp();
+void saveSettingsTemp();
 void saveLastRecvd();
 void loadLastRecvd();
+void saveAPSettings();
+void loadAPSettings();
 
 extern float SetPoint;  // Глобальная установочная температура
 

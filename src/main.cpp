@@ -10,20 +10,48 @@
 #include <EEPROM.h>
 #include <math.h>
 
-// Настройки точки доступа
-const char* ap_ssid = "ESP_AP";        // SSID вашей точки доступа
-const char* ap_password = "12345678";  // Пароль от точки доступа
+// Настройки подключения к Wi-Fi
+const char* ssid = "INFRATEST";          // SSID вашей сети Wi-Fi
+const char* password = "^I={test}.1206   @";  // Пароль от Wi-Fi
 
 // Веб-сервер
 ESP8266WebServer server(80);
 
-void setup() {
-  Serial.begin(115200);
+// Функция подключения к Wi-Fi в режиме станции (STA)
+void connectToWiFi() {
+  WiFi.mode(WIFI_STA);  // Устанавливаем режим станции
+  WiFi.begin(ssid, password);
+  Serial.print("Подключение к Wi-Fi");
+  
+  // Ожидание подключения
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("\nПодключено к Wi-Fi");
+  Serial.print("IP-адрес: ");
+  Serial.println(WiFi.localIP());
+}
+
+// Функция запуска точки доступа (AP)
+void startAccessPoint() {
+  WiFi.mode(WIFI_AP);
+  loadAPSettings();
   WiFi.softAP(ap_ssid, ap_password);
   Serial.println("Точка доступа запущена");
+  Serial.print("IP-адрес точки доступа: ");
+  Serial.println(WiFi.softAPIP());
+}
 
-  loadSettings();  // Загружаем сохранённую установочную температуру
+void setup() {
+  Serial.begin(115200);
+  
+  // connectToWiFi();  // Подключаемся к Wi-Fi
+  startAccessPoint();
+  loadSettingsTemp();  // Загружаем сохранённую установочную температуру
   loadLastRecvd();
+  
   // Инициализация буфера графика (начальные данные)
   for (int i = 0; i < L; i++) {
     TStorage[i] = 36.0;
@@ -36,8 +64,6 @@ void setup() {
 
   server.begin();
   Serial.println("Веб-сервер запущен");
-  Serial.print("IP-адрес точки доступа: ");
-  Serial.println(WiFi.softAPIP());
 }
 
 void loop() {

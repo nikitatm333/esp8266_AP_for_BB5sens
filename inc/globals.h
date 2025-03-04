@@ -29,5 +29,7 @@ extern int TShead;
 extern int TStail;
 extern float TStorage[L];
 extern int LLL;
+extern char ap_ssid[32];
+extern char ap_password[32];
 
 #endif // GLOBALS_H

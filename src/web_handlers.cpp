@@ -32,17 +32,6 @@ void handleRoot() {
   server.send(200, "text/html; charset=utf-8", page);
 }
 
-// void handleSetTemp() {
-//   if (server.hasArg("temp")) {
-//     SetPoint = server.arg("temp").toFloat();
-//     LastRecvd = "Установлена температура: " + String(SetPoint);
-//     sendTemperatureToDevice(SetPoint);
-//     saveSettings();
-//   }
-//   server.sendHeader("Location", "/");
-//   server.send(303);
-// }
-
 
 void handleSetTemp() {
     if (server.hasArg("temp")) {
@@ -50,7 +39,7 @@ void handleSetTemp() {
       LastRecvd = "Установить " + String(SetPoint) + " °C";
       sendTemperatureToDevice(SetPoint);
       saveLastRecvd();  // Сохраняем строку в EEPROM
-      saveSettings();    // Сохраняем SetPoint в EEPROM
+      saveSettingsTemp();    // Сохраняем SetPoint в EEPROM
     }
     server.sendHeader("Location", "/");
     server.send(303);
@@ -103,3 +92,5 @@ void initWebHandlers(ESP8266WebServer &server) {
   server.on("/graph_svg", handleGraphSVG);
   server.on("/graph", handleGraphHTML);
 }
+
+
