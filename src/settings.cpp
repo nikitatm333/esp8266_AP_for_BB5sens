@@ -62,6 +62,22 @@ void saveAPSettings() {
   EEPROM.end();
 }
 
+// // Загрузка данных для режима AP
+// void loadAPSettings() {
+//   EEPROM.begin(EEPROM_SIZE);
+//   EEPROM.get(AP_SSID_ADDR, ap_ssid);
+//   EEPROM.get(AP_PASS_ADDR, ap_password);
+//   EEPROM.end();
+  
+//   // Проверка на пустые данные (если EEPROM пуст, запишется мусор)
+//   if (ap_ssid[0] == 0xFF || ap_ssid[0] == '\0') {
+//       strcpy(ap_ssid, "ESP_AP");
+//   }
+//   if (ap_password[0] == 0xFF || ap_password[0] == '\0') {
+//       strcpy(ap_password, "12345678");
+//   }
+// }
+
 // Загрузка данных для режима AP
 void loadAPSettings() {
   EEPROM.begin(EEPROM_SIZE);
@@ -69,11 +85,7 @@ void loadAPSettings() {
   EEPROM.get(AP_PASS_ADDR, ap_password);
   EEPROM.end();
   
-  // Проверка на пустые данные (если EEPROM пуст, запишется мусор)
-  if (ap_ssid[0] == 0xFF || ap_ssid[0] == '\0') {
-      strcpy(ap_ssid, "ESP_AP");
-  }
-  if (ap_password[0] == 0xFF || ap_password[0] == '\0') {
-      strcpy(ap_password, "12345678");
-  }
+  // Гарантируем завершение строк
+  ap_ssid[31] = '\0';
+  ap_password[31] = '\0';
 }

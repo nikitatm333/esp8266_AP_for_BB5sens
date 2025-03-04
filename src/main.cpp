@@ -12,21 +12,52 @@
 
 // Настройки подключения к Wi-Fi
 const char* ssid = "INFRATEST";          // SSID вашей сети Wi-Fi
-const char* password = "^I={test}.1206";  // Пароль от Wi-Fi
+const char* password = "^I={test}.1206  q";  // Пароль от Wi-Fi
 
 // Веб-сервер
 ESP8266WebServer server(80);
 
-// Функция запуска точки доступа (AP)
-void startAccessPoint() {
-  WiFi.mode(WIFI_AP);
-  loadAPSettings(); // Загружаем SSID из EEPROM
 
-  // Запускаем точку доступа без пароля (открытая сеть)
-  WiFi.softAP(ap_ssid);
-  Serial.println("Точка доступа запущена");
-  Serial.print("IP-адрес точки доступа: ");
-  Serial.println(WiFi.softAPIP());
+void clearEEPROM() {
+  EEPROM.begin(512); // Размер EEPROM
+  for (int i = 0; i < 512; i++) {
+      EEPROM.write(i, 0xFF); // Записываем пустые данные (0xFF — стандартное "чистое" состояние)
+  }
+  EEPROM.commit();
+  EEPROM.end();
+  Serial.println("EEPROM очищен!");
+}
+
+void startAccessPoint() {
+  loadAPSettings();
+  
+  // Проверяем необходимость регистрации
+  bool needRegistration = (ap_ssid[0] == 0xFF || ap_ssid[0] == '\0');
+
+  if (needRegistration) {
+    Serial.println("Режим настройки AP");
+    WiFi.softAP("ESP_Config");
+    server.on("/", handleRegPage);
+    server.on("/set_ap", HTTP_POST, handleSetAP);
+    server.begin();
+    
+    while (true) {
+      server.handleClient();
+      delay(1);
+    }
+  } else {
+    // Запуск AP с сохраненными данными
+    if (ap_password[0] == '\0' || ap_password[0] == 0xFF) {
+      WiFi.softAP(ap_ssid);
+    } else {
+      WiFi.softAP(ap_ssid, ap_password);
+    }
+    Serial.println("Точка доступа запущена");
+    Serial.print("SSID: ");
+    Serial.println(ap_ssid);
+    Serial.print("IP: ");
+    Serial.println(WiFi.softAPIP());
+  }
 }
 
 void connectToWiFi() {
@@ -56,6 +87,7 @@ void connectToWiFi() {
 
 void setup() {
   Serial.begin(115200);
+  // clearEEPROM();
   connectToWiFi(); // Попытка подключения к Wi-Fi
   
   loadSettingsTemp();  // Загружаем сохранённую установочную температуру
@@ -80,3 +112,4 @@ void loop() {
   processSerialData();
   updateTargetStatus();  // Обновляем статус достижения температуры
 }
+

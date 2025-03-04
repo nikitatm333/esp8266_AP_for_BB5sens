@@ -6,7 +6,9 @@
 #include "../inc/temp_control.h"
 #include <ESP8266WebServer.h>
 #include "../inc/graph.h"
-
+#include "../inc/reg_page.h" 
+#include <EEPROM.h>
+#include "../inc/settings.h"
 // Объявляем внешний сервер
 extern ESP8266WebServer server;
 
@@ -94,3 +96,39 @@ void initWebHandlers(ESP8266WebServer &server) {
 }
 
 
+// Обработчик страницы регистрации AP
+void handleRegPage() {
+  server.send_P(200, "text/html; charset=utf-8", REG_PAGE);
+}
+
+// Обработчик сохранения настроек AP
+void handleSetAP() {
+  String newSSID = server.arg("ssid");
+  String newPassword = server.arg("password");
+
+  // Проверка минимальной длины пароля
+  if (newPassword.length() > 0 && newPassword.length() < 8) {
+    server.send(400, "text/plain", "Пароль должен быть не менее 8 символов");
+    return;
+  }
+
+  // Сохраняем в EEPROM
+  EEPROM.begin(EEPROM_SIZE);
+  
+  // Очищаем старые данные
+  memset(ap_ssid, 0, 32);
+  memset(ap_password, 0, 32);
+  
+  // Копируем новые данные
+  strncpy(ap_ssid, newSSID.c_str(), 31);
+  strncpy(ap_password, newPassword.c_str(), 31);
+  
+  EEPROM.put(AP_SSID_ADDR, ap_ssid);
+  EEPROM.put(AP_PASS_ADDR, ap_password);
+  EEPROM.commit();
+  EEPROM.end();
+
+  server.send(200, "text/plain", "Настройки сохранены. Перезагрузка...");
+  delay(1000);
+  ESP.restart();
+}
