@@ -12,43 +12,52 @@
 
 // Настройки подключения к Wi-Fi
 const char* ssid = "INFRATEST";          // SSID вашей сети Wi-Fi
-const char* password = "^I={test}.1206   @";  // Пароль от Wi-Fi
+const char* password = "^I={test}.1206";  // Пароль от Wi-Fi
 
 // Веб-сервер
 ESP8266WebServer server(80);
 
-// Функция подключения к Wi-Fi в режиме станции (STA)
-void connectToWiFi() {
-  WiFi.mode(WIFI_STA);  // Устанавливаем режим станции
-  WiFi.begin(ssid, password);
-  Serial.print("Подключение к Wi-Fi");
-  
-  // Ожидание подключения
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  
-  Serial.println("\nПодключено к Wi-Fi");
-  Serial.print("IP-адрес: ");
-  Serial.println(WiFi.localIP());
-}
-
 // Функция запуска точки доступа (AP)
 void startAccessPoint() {
   WiFi.mode(WIFI_AP);
-  loadAPSettings();
-  WiFi.softAP(ap_ssid, ap_password);
+  loadAPSettings(); // Загружаем SSID из EEPROM
+
+  // Запускаем точку доступа без пароля (открытая сеть)
+  WiFi.softAP(ap_ssid);
   Serial.println("Точка доступа запущена");
   Serial.print("IP-адрес точки доступа: ");
   Serial.println(WiFi.softAPIP());
 }
 
+void connectToWiFi() {
+  WiFi.mode(WIFI_STA);  // Устанавливаем режим станции
+  WiFi.begin(ssid, password);
+  Serial.print("Подключение к Wi-Fi");
+
+  unsigned long startAttemptTime = millis(); // Засекаем время старта
+  const unsigned long wifiTimeout = 10000;   // 10 секунд на подключение
+
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < wifiTimeout) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nПодключено к Wi-Fi");
+    Serial.print("IP-адрес: ");
+    Serial.println(WiFi.localIP());
+  }else {
+    Serial.println("\nНе удалось подключиться к Wi-Fi. Запуск режима AP...");
+    startAccessPoint(); // Переход в режим AP
+  }
+}
+
+
+
 void setup() {
   Serial.begin(115200);
+  connectToWiFi(); // Попытка подключения к Wi-Fi
   
-  // connectToWiFi();  // Подключаемся к Wi-Fi
-  startAccessPoint();
   loadSettingsTemp();  // Загружаем сохранённую установочную температуру
   loadLastRecvd();
   
