@@ -11,7 +11,7 @@
 #include <math.h>
 
 // Настройки подключения к Wi-Fi
-const char* ssid = "INFRATEST";          // SSID вашей сети Wi-Fi
+const char* ssid = "INFRATEST";          // SSID сети Wi-Fi
 const char* password = "^I={test}.1206  q";  // Пароль от Wi-Fi
 
 // Веб-сервер
@@ -31,33 +31,20 @@ void clearEEPROM() {
 void startAccessPoint() {
   loadAPSettings();
   
-  // Проверяем необходимость регистрации
-  bool needRegistration = (ap_ssid[0] == 0xFF || ap_ssid[0] == '\0');
-
-  if (needRegistration) {
-    Serial.println("Режим настройки AP");
-    WiFi.softAP("ESP_Config");
-    server.on("/", handleRegPage);
-    server.on("/set_ap", HTTP_POST, handleSetAP);
-    server.begin();
-    
-    while (true) {
-      server.handleClient();
-      delay(1);
-    }
-  } else {
-    // Запуск AP с сохраненными данными
-    if (ap_password[0] == '\0' || ap_password[0] == 0xFF) {
-      WiFi.softAP(ap_ssid);
-    } else {
-      WiFi.softAP(ap_ssid, ap_password);
-    }
-    Serial.println("Точка доступа запущена");
-    Serial.print("SSID: ");
-    Serial.println(ap_ssid);
-    Serial.print("IP: ");
-    Serial.println(WiFi.softAPIP());
+  if (ap_ssid[0] == 0xFF || ap_ssid[0] == '\0') {
+    strncpy(ap_ssid, "ESP_AP", sizeof(ap_ssid));
+    ap_ssid[sizeof(ap_ssid)-1] = '\0';
+    ap_password[0] = '\0';
   }
+
+  if (ap_password[0] == '\0' || ap_password[0] == 0xFF) {
+    WiFi.softAP(ap_ssid);
+  } else {
+    WiFi.softAP(ap_ssid, ap_password);
+  }
+  
+  Serial.println("Точка доступа запущена");
+  
 }
 
 void connectToWiFi() {

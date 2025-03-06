@@ -38,18 +38,36 @@ void saveLastRecvd() {
 }
 
 
+// void loadLastRecvd() {
+//   EEPROM.begin(EEPROM_SIZE);
+//   char buffer[64];  // Буфер для строки
+//   for (int i = 0; i < 64; i++) {
+//     buffer[i] = EEPROM.read(LASTRECVD_ADDR + i);
+//     if (buffer[i] == '\0') break;  // Конец строки
+//   }
+//   EEPROM.end();
+  
+//   LastRecvd = String(buffer);
+//   if (LastRecvd.length() == 0) {
+//     LastRecvd = "none yet";
+//   }
+// }
+
+
 void loadLastRecvd() {
   EEPROM.begin(EEPROM_SIZE);
-  char buffer[64];  // Буфер для строки
+  char buffer[64];
   for (int i = 0; i < 64; i++) {
     buffer[i] = EEPROM.read(LASTRECVD_ADDR + i);
-    if (buffer[i] == '\0') break;  // Конец строки
+    if (buffer[i] == '\0') break;
   }
   EEPROM.end();
   
-  LastRecvd = String(buffer);
-  if (LastRecvd.length() == 0) {
+  // Если первый символ равен 0xFF, считаем, что данные не сохранены
+  if ((unsigned char)buffer[0] == 0xFF) {
     LastRecvd = "none yet";
+  } else {
+    LastRecvd = String(buffer);
   }
 }
 
@@ -78,14 +96,29 @@ void saveAPSettings() {
 //   }
 // }
 
-// Загрузка данных для режима AP
+// // Загрузка данных для режима AP
+// void loadAPSettings() {
+//   EEPROM.begin(EEPROM_SIZE);
+//   EEPROM.get(AP_SSID_ADDR, ap_ssid);
+//   EEPROM.get(AP_PASS_ADDR, ap_password);
+//   EEPROM.end();
+  
+//   // Гарантируем завершение строк
+//   ap_ssid[31] = '\0';
+//   ap_password[31] = '\0';
+// }
+
+
 void loadAPSettings() {
-  EEPROM.begin(EEPROM_SIZE);
+  EEPROM.begin(512);
   EEPROM.get(AP_SSID_ADDR, ap_ssid);
   EEPROM.get(AP_PASS_ADDR, ap_password);
   EEPROM.end();
-  
-  // Гарантируем завершение строк
-  ap_ssid[31] = '\0';
-  ap_password[31] = '\0';
+
+  // Проверка и установка значений по умолчанию
+  if(ap_ssid[0] == 0xFF || ap_ssid[0] == '\0') {
+    strncpy(ap_ssid, "ESP_AP", sizeof(ap_ssid)-1);
+  }
+  ap_ssid[sizeof(ap_ssid)-1] = '\0';
+  ap_password[sizeof(ap_password)-1] = '\0';
 }

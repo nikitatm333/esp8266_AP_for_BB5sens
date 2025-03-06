@@ -7,15 +7,15 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>График</title>
+    <title>График температур</title>
     <style>
-      body { 
-        background-color: #cccccc; 
-        font-family: Arial, Helvetica, sans-serif; 
-        color: #000088; 
-        text-align: center; 
-        margin: 0; 
-        padding: 20px; 
+      body {
+        background-color: #cccccc;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #000088;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
       }
       .container {
         max-width: 400px;
@@ -26,9 +26,37 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         text-align: left;
       }
-      a { 
-        color: #007BFF; 
-        text-decoration: none; 
+      h1 {
+        font-size: 20px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 10px 0 5px;
+      }
+      p {
+        font-size: 14px;
+        margin: 5px 0;
+      }
+      a {
+        color: #007BFF;
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .buttonLink {
+        display: inline-block;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        background-color: #007BFF;
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .buttonLink:hover {
+        background-color: #0056b3;
       }
       .centerAlign {
         text-align: center;
@@ -43,7 +71,6 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
           });
       }
       function updateSensors() {
-        // Делаем 2 отдельных запроса
         Promise.all([
           fetch('/sensors'),
           fetch('/pids')
@@ -51,16 +78,16 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
         .then(responses => Promise.all(responses.map(r => r.json())))
         .then(([sensors, pids]) => {
           let html = "<h3>Датчики температуры</h3>";
-          html += "sensor_1: " + sensors.sensor1 + " °C<br>";
-          html += "sensor_2: " + sensors.sensor2 + " °C<br>";
-          html += "sensor_3: " + sensors.sensor3 + " °C<br>";
-          html += "sensor_4: " + sensors.sensor4 + " °C<br>";
-          html += "center_sensor: " + sensors.central + " °C<br>";
+          html += "<p>Sensor 1: " + sensors.sensor1 + " °C</p>";
+          html += "<p>Sensor 2: " + sensors.sensor2 + " °C</p>";
+          html += "<p>Sensor 3: " + sensors.sensor3 + " °C</p>";
+          html += "<p>Sensor 4: " + sensors.sensor4 + " °C</p>";
+          html += "<p>Central: " + sensors.central + " °C</p>";
           html += "<h3>ПИД регуляторы</h3>";
-          html += "pid_1: " + pids.pid1 + "<br>";
-          html += "pid_2: " + pids.pid2 + "<br>";
-          html += "pid_3: " + pids.pid3 + "<br>";
-          html += "pid_4: " + pids.pid4 + "<br>";
+          html += "<p>PID 1: " + pids.pid1 + "</p>";
+          html += "<p>PID 2: " + pids.pid2 + "</p>";
+          html += "<p>PID 3: " + pids.pid3 + "</p>";
+          html += "<p>PID 4: " + pids.pid4 + "</p>";
           document.getElementById("sensorValues").innerHTML = html;
         });
       }
@@ -73,9 +100,12 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
   </head>
   <body>
     <div class="container">
+      <h1>График температур</h1>
       <div id="svgContainer"></div>
-      <div id="sensorValues" style="margin-top:20px; font-size:1.2em;"></div>
-      <p class="centerAlign"><a href="/">Вернуться на главную</a></p>
+      <div id="sensorValues" style="margin-top:20px;"></div>
+      <div class="centerAlign">
+        <a href="/" class="buttonLink">Вернуться на главную</a>
+      </div>
     </div>
   </body>
 </html>

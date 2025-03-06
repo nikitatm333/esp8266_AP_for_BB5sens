@@ -2,110 +2,241 @@
 #define INDEX_HTML
 
 const char MAIN_page[] PROGMEM = R"=====( 
-    <!DOCTYPE HTML>
-    <html>
-     <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Управление АЧТ</title>
-      <style>
-        body { 
-          background-color: #cccccc; 
-          font-family: Arial, Helvetica, Sans-Serif; 
-          color: #000088; 
-          text-align: center;
-          margin: 0;
-          padding: 20px;
-        }
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Управление АЧТ</title>
+    <style>
+      body {
+        background-color: #cccccc;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #000088;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        position: relative;
+        max-width: 400px;
+        margin: auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input[type='number'], input[type='text'], input[type='password'] {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        margin-bottom: 15px;
+      }
+      input[type='submit'] {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        color: white;
+        background-color: #007BFF;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      input[type='submit']:hover {
+        background-color: #0056b3;
+      }
+      p {
+        font-size: 1.1em;
+        margin: 10px 0;
+      }
+      /* Для переноса последней команды */
+      .lastCmd {
+        display: block;
+      }
+      /* Кнопка для ссылки "Подробно" */
+      .buttonLink {
+        display: inline-block;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        background-color: #007BFF;
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .buttonLink:hover {
+        background-color: #0056b3;
+      }
+      /* Контейнер для кнопки "Подробно" и иконки настройки */
+      .buttonContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
+        margin: 15px 0;
+      }
+      /* Иконка настройки в виде кнопки */
+      .buttonIcon {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #007BFF;
+        color: white;
+        text-align: center;
+        line-height: 40px;
+        font-size: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .buttonIcon:hover {
+        background-color: #0056b3;
+      }
+      @media (max-width: 480px) {
         .container {
-          max-width: 400px;
-          margin: auto;
-          padding: 20px;
-          background: white;
-          border-radius: 10px;
-          box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+          width: 90%;
         }
-        .leftAlign {
-          text-align: left;
+      }
+      /* Стили модального окна */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+      }
+      .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+      }
+    </style>
+    <script>
+      let isFetching = false;
+      function updateTemperature() {
+        if (isFetching) return;
+        isFetching = true;
+        fetch('/get_temp')
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById("currentTemp").innerText = data.temp;
+            if(data.reached) {
+              document.getElementById("tempInput").style.backgroundColor = "rgba(0,255,0,0.5)";
+            } else {
+              document.getElementById("tempInput").style.backgroundColor = "rgba(255,165,0,0.5)";
+            }
+          })
+          .finally(() => { isFetching = false; });
+      }
+      function setTemperature(event) {
+        event.preventDefault();
+        let tempValue = document.getElementById("tempInput").value;
+        fetch('/set_temp?temp=' + tempValue, { method: 'POST' })
+          .then(response => response.text())
+          .then(() => {
+            document.getElementById("lastCmd").innerText = "Установить " + tempValue + " °C";
+          });
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById("settingsModal");
+        var settingsIcon = document.getElementById("settingsIcon");
+        var closeBtn = document.getElementsByClassName("close")[0];
+        settingsIcon.onclick = function() {
+          modal.style.display = "block";
         }
-        input[type='number'] {
-          width: 80%;
-          max-width: 200px;
-          font-size: 18px;
-          margin: 10px 0;
-          padding: 10px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
+        closeBtn.onclick = function() {
+          modal.style.display = "none";
         }
-        input[type='submit'] {
-          width: 100%;
-          padding: 10px;
-          font-size: 18px;
-          color: white;
-          background-color: #007BFF;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-        input[type='submit']:hover {
-          background-color: #0056b3;
-        }
-        p { font-size: 1.2em; }
-        @media (max-width: 480px) {
-          .container {
-            width: 90%;
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
           }
         }
-      </style>
-      <script>
-        let isFetching = false;
-
-        function updateTemperature() {
-            if (isFetching) return;
-            isFetching = true;
-            fetch('/get_temp')
-            .then(response => response.json())
-            .then(data => {
-                // Обновляем значение текущей температуры (для отображения)
-                document.getElementById("currentTemp").innerText = data.temp;
-                // Меняем цвет фона поля ввода установленной температуры:
-                // Если достигнута целевая температура – зеленый, иначе – оранжевый
-                if(data.reached) {
-                  document.getElementById("tempInput").style.backgroundColor = "rgba(0,255,0,0.5)";
-                } else {
-                  document.getElementById("tempInput").style.backgroundColor = "rgba(255,165,0,0.5)";
-                }
-            })
-            .finally(() => { isFetching = false; });
-        }
-
-        function setTemperature(event) {
-            event.preventDefault();
-            let tempValue = document.getElementById("tempInput").value;
-            fetch('/set_temp?temp=' + tempValue, { method: 'POST' })
-            .then(response => response.text())
-            .then(() => {
-                document.getElementById("lastCmd").innerText = "Установить " + tempValue + " °C";
-            });
-        }
-
-        setInterval(updateTemperature, 1000);
-      </script>
-     </head>
-     <body>
-      <div class="container">
-        <h1>Управление температурой АЧТ</h1>
-        <form onsubmit="setTemperature(event)">
-          <label for="tempInput">Установить температуру:</label><br>
-          <input type="number" id="tempInput" name="temp" value="%SETPOINT%" step="0.1" min="-20" max="100"><br>
-          <input type="submit" value="Установить">
-        </form>
-        <p class="leftAlign"><b>Текущая температура центрального датчика:</b> <strong><span id="currentTemp">%CURRENTTEMP%</span> °C</strong></p>
-        <p class="leftAlign"><b>Последняя команда:</b> <br> <strong><span id="lastCmd">%LASTCMD%</span></strong></p>
-        <p><a href="/graph">Подробно</a></p>
+        document.getElementById("apSettingsForm").addEventListener("submit", function(e) {
+          e.preventDefault();
+          if(!confirm("Изменение настроек влечет отлючение от текущей AP. Продолжить?")) return;
+          let formData = new FormData(this);
+          fetch('/set_ap', {
+            method: 'POST',
+            body: new URLSearchParams(formData)
+          })
+          .then(response => {
+            if(response.ok) {
+              alert('Настройки сохранены. Отключите устройство от питания и включите повторно...');
+              setTimeout(() => location.reload(), 3000);
+            }
+          });
+        });
+      });
+      setInterval(updateTemperature, 1000);
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Управление температурой АЧТ</h1>
+      <form onsubmit="setTemperature(event)">
+        <label for="tempInput">Установить температуру:</label>
+        <input type="number" id="tempInput" name="temp" value="%SETPOINT%" step="0.1" min="-20" max="100" required>
+        <input type="submit" value="Установить">
+      </form>
+      <p><b>Текущая температура:</b><br><span id="currentTemp">%CURRENTTEMP%</span> °C</p>
+      <p><b>Последняя команда:</b><br><span id="lastCmd">%LASTCMD%</span></p>
+      <div class="buttonContainer">
+        <a href="/graph" class="buttonLink">Подробно</a>
+        <div id="settingsIcon" class="buttonIcon">🔧</div>
       </div>
-     </body>
-    </html>
+    </div>
+    <!-- Модальное окно настроек -->
+    <div id="settingsModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Настройки точки доступа</h2>
+        <form id="apSettingsForm">
+          <label for="ap_ssid_input">SSID:</label>
+          <input type="text" id="ap_ssid_input" name="ssid" value="%AP_SSID%" required>
+          <label for="ap_password_input">PASSWORD:</label>
+          <input type="password" id="ap_password_input" name="password" value="%AP_PASSWORD%">
+          <input type="submit" value="Сохранить">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
 )=====";
-    
+
 #endif

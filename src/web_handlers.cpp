@@ -26,14 +26,17 @@ void sendTemperatureToDevice(float temp) {
   Serial.println(command);
 }
 
+
 void handleRoot() {
   String page = MAIN_page;
   page.replace("%SETPOINT%", String(SetPoint, 1));
   page.replace("%CURRENTTEMP%", String(CurrentTemp, 1));
   page.replace("%LASTCMD%", LastRecvd);
+  // Восстанавливаем замену для настроек AP
+  page.replace("%AP_SSID%", String(ap_ssid));
+  page.replace("%AP_PASSWORD%", String(ap_password));
   server.send(200, "text/html; charset=utf-8", page);
 }
-
 
 void handleSetTemp() {
     if (server.hasArg("temp")) {
@@ -85,6 +88,44 @@ void handleGraphHTML() {
   server.send_P(200, "text/html; charset=utf-8", GRAPH_PAGE);
 }
 
+
+// Обработчик страницы регистрации AP
+void handleRegPage() {
+  server.send_P(200, "text/html; charset=utf-8", REG_PAGE);
+}
+
+void handleSetAP() {
+  String newSSID = server.arg("ssid");
+  String newPassword = server.arg("password");
+
+  // Проверки
+  if (newSSID.length() == 0 || newSSID.length() > 31) {
+    server.send(400, "text/plain", "Invalid SSID");
+    return;
+  }
+
+  if (newPassword.length() > 0 && newPassword.length() < 8) {
+    server.send(400, "text/plain", "Invalid password");
+    return;
+  }
+
+  // Сохранение
+  memset(ap_ssid, 0, sizeof(ap_ssid));
+  memset(ap_password, 0, sizeof(ap_password));
+  strncpy(ap_ssid, newSSID.c_str(), sizeof(ap_ssid)-1);
+  strncpy(ap_password, newPassword.c_str(), sizeof(ap_password)-1);
+  
+  saveAPSettings();
+
+  // Отправляем успешный ответ
+  server.send(200, "text/plain", "OK");
+  
+  // Отложенная перезагрузка
+  delay(100);
+  ESP.restart();
+}
+
+
 void initWebHandlers(ESP8266WebServer &server) {
   server.on("/", handleRoot);
   server.on("/set_temp", handleSetTemp);
@@ -93,42 +134,5 @@ void initWebHandlers(ESP8266WebServer &server) {
   server.on("/pids", handlePids);
   server.on("/graph_svg", handleGraphSVG);
   server.on("/graph", handleGraphHTML);
-}
-
-
-// Обработчик страницы регистрации AP
-void handleRegPage() {
-  server.send_P(200, "text/html; charset=utf-8", REG_PAGE);
-}
-
-// Обработчик сохранения настроек AP
-void handleSetAP() {
-  String newSSID = server.arg("ssid");
-  String newPassword = server.arg("password");
-
-  // Проверка минимальной длины пароля
-  if (newPassword.length() > 0 && newPassword.length() < 8) {
-    server.send(400, "text/plain", "Пароль должен быть не менее 8 символов");
-    return;
-  }
-
-  // Сохраняем в EEPROM
-  EEPROM.begin(EEPROM_SIZE);
-  
-  // Очищаем старые данные
-  memset(ap_ssid, 0, 32);
-  memset(ap_password, 0, 32);
-  
-  // Копируем новые данные
-  strncpy(ap_ssid, newSSID.c_str(), 31);
-  strncpy(ap_password, newPassword.c_str(), 31);
-  
-  EEPROM.put(AP_SSID_ADDR, ap_ssid);
-  EEPROM.put(AP_PASS_ADDR, ap_password);
-  EEPROM.commit();
-  EEPROM.end();
-
-  server.send(200, "text/plain", "Настройки сохранены. Перезагрузка...");
-  delay(1000);
-  ESP.restart();
+  server.on("/set_ap", HTTP_POST, handleSetAP); // Добавлено
 }
