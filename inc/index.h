@@ -83,11 +83,8 @@ const char MAIN_page[] PROGMEM = R"=====(
       }
       /* Контейнер для кнопки "Подробно" и иконки настройки */
       .buttonContainer {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        gap: 10px;
+        position: relative;
+        text-align: center;
         margin: 15px 0;
       }
       /* Иконка настройки в виде кнопки */
@@ -106,6 +103,13 @@ const char MAIN_page[] PROGMEM = R"=====(
       }
       .buttonIcon:hover {
         background-color: #0056b3;
+      }
+      /* Позиционирование иконки (гаечного ключа) */
+      .buttonContainer #settingsIcon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
       }
       @media (max-width: 480px) {
         .container {

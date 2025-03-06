@@ -17,7 +17,7 @@ void updateTargetStatus() {
       if (targetAchievedStart == 0) {
         targetAchievedStart = now;
       }
-      if (now - targetAchievedStart >= 5000) { // 5 секунд в пределах допуска
+      if (now - targetAchievedStart >= 20000) { // 20 секунд в пределах допуска
         targetReached = true;
         targetLostStart = 0; // сброс таймера потери достижения
       }

@@ -134,5 +134,5 @@ void initWebHandlers(ESP8266WebServer &server) {
   server.on("/pids", handlePids);
   server.on("/graph_svg", handleGraphSVG);
   server.on("/graph", handleGraphHTML);
-  server.on("/set_ap", HTTP_POST, handleSetAP); // Добавлено
+  server.on("/set_ap", HTTP_POST, handleSetAP);
 }

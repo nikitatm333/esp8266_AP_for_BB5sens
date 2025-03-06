@@ -12,7 +12,7 @@
 
 // Настройки подключения к Wi-Fi
 const char* ssid = "INFRATEST";          // SSID сети Wi-Fi
-const char* password = "^I={test}.1206  q";  // Пароль от Wi-Fi
+const char* password = "^I={test}.1206";  // Пароль от Wi-Fi
 
 // Веб-сервер
 ESP8266WebServer server(80);
@@ -74,7 +74,7 @@ void connectToWiFi() {
 
 void setup() {
   Serial.begin(115200);
-  // clearEEPROM();
+  // clearEEPROM(); // Очистка энергонезависимой памяти устройства
   connectToWiFi(); // Попытка подключения к Wi-Fi
   
   loadSettingsTemp();  // Загружаем сохранённую установочную температуру

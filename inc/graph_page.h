@@ -77,13 +77,13 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
         ])
         .then(responses => Promise.all(responses.map(r => r.json())))
         .then(([sensors, pids]) => {
-          let html = "<h3>Датчики температуры</h3>";
+          let html = "<h3>Датчики температуры: </h3>";
           html += "<p>Sensor 1: " + sensors.sensor1 + " °C</p>";
           html += "<p>Sensor 2: " + sensors.sensor2 + " °C</p>";
           html += "<p>Sensor 3: " + sensors.sensor3 + " °C</p>";
           html += "<p>Sensor 4: " + sensors.sensor4 + " °C</p>";
           html += "<p>Central: " + sensors.central + " °C</p>";
-          html += "<h3>ПИД регуляторы</h3>";
+          html += "<h3>ПИД регуляторы: </h3>";
           html += "<p>PID 1: " + pids.pid1 + "</p>";
           html += "<p>PID 2: " + pids.pid2 + "</p>";
           html += "<p>PID 3: " + pids.pid3 + "</p>";
@@ -100,7 +100,7 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
   </head>
   <body>
     <div class="container">
-      <h1>График температур</h1>
+      <h1>График температуры</h1>
       <div id="svgContainer"></div>
       <div id="sensorValues" style="margin-top:20px;"></div>
       <div class="centerAlign">

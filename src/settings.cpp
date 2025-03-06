@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 #include "../inc/globals.h"
 
-#define EEPROM_SIZE 512 
+#define EEPROM_SIZE 512 // Размер энергонезависимой памяти
 #define SETPOINT_ADDR 0
 #define LASTRECVD_ADDR 32  // Отступ от `SetPoint`, строка начнется с 32 байта
 #define AP_SSID_ADDR 100    // Адрес для хранения SSID
@@ -10,6 +10,7 @@
 
 // Значение по умолчанию
 float SetPoint = 36.6;
+
 
 void saveSettingsTemp() {
   EEPROM.begin(EEPROM_SIZE);
@@ -38,22 +39,6 @@ void saveLastRecvd() {
 }
 
 
-// void loadLastRecvd() {
-//   EEPROM.begin(EEPROM_SIZE);
-//   char buffer[64];  // Буфер для строки
-//   for (int i = 0; i < 64; i++) {
-//     buffer[i] = EEPROM.read(LASTRECVD_ADDR + i);
-//     if (buffer[i] == '\0') break;  // Конец строки
-//   }
-//   EEPROM.end();
-  
-//   LastRecvd = String(buffer);
-//   if (LastRecvd.length() == 0) {
-//     LastRecvd = "none yet";
-//   }
-// }
-
-
 void loadLastRecvd() {
   EEPROM.begin(EEPROM_SIZE);
   char buffer[64];
@@ -79,35 +64,6 @@ void saveAPSettings() {
   EEPROM.commit();
   EEPROM.end();
 }
-
-// // Загрузка данных для режима AP
-// void loadAPSettings() {
-//   EEPROM.begin(EEPROM_SIZE);
-//   EEPROM.get(AP_SSID_ADDR, ap_ssid);
-//   EEPROM.get(AP_PASS_ADDR, ap_password);
-//   EEPROM.end();
-  
-//   // Проверка на пустые данные (если EEPROM пуст, запишется мусор)
-//   if (ap_ssid[0] == 0xFF || ap_ssid[0] == '\0') {
-//       strcpy(ap_ssid, "ESP_AP");
-//   }
-//   if (ap_password[0] == 0xFF || ap_password[0] == '\0') {
-//       strcpy(ap_password, "12345678");
-//   }
-// }
-
-// // Загрузка данных для режима AP
-// void loadAPSettings() {
-//   EEPROM.begin(EEPROM_SIZE);
-//   EEPROM.get(AP_SSID_ADDR, ap_ssid);
-//   EEPROM.get(AP_PASS_ADDR, ap_password);
-//   EEPROM.end();
-  
-//   // Гарантируем завершение строк
-//   ap_ssid[31] = '\0';
-//   ap_password[31] = '\0';
-// }
-
 
 void loadAPSettings() {
   EEPROM.begin(512);
