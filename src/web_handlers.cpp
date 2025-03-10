@@ -6,7 +6,6 @@
 #include "../inc/temp_control.h"
 #include <ESP8266WebServer.h>
 #include "../inc/graph.h"
-#include "../inc/reg_page.h" 
 #include <EEPROM.h>
 #include "../inc/settings.h"
 // Объявляем внешний сервер
@@ -89,10 +88,6 @@ void handleGraphHTML() {
 }
 
 
-// Обработчик страницы регистрации AP
-void handleRegPage() {
-  server.send_P(200, "text/html; charset=utf-8", REG_PAGE);
-}
 
 void handleSetAP() {
   String newSSID = server.arg("ssid");

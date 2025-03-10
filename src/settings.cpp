@@ -78,3 +78,27 @@ void loadAPSettings() {
   ap_ssid[sizeof(ap_ssid)-1] = '\0';
   ap_password[sizeof(ap_password)-1] = '\0';
 }
+
+// void clearEEPROM() {
+//   EEPROM.begin(512); // Размер EEPROM
+//   for (int i = 0; i < 512; i++) {
+//       EEPROM.write(i, 0xFF); // Записываем пустые данные (0xFF — стандартное "чистое" состояние)
+//   }
+//   EEPROM.commit();
+//   EEPROM.end();
+//   Serial.println("EEPROM очищен!");
+// }
+void clearEEPROM() {
+  EEPROM.begin(512); // Размер EEPROM
+  for (int i = 0; i < 512; i++) {
+      EEPROM.write(i, 0xFF); // Записываем "очищенное" значение
+      // Каждые 32 байта даём возможность выполнить системные задачи
+      if (i % 32 == 0) {
+          yield();  // Или delay(1);
+      }
+  }
+  EEPROM.commit();
+  EEPROM.end();
+  Serial.println("EEPROM очищен!");
+}
+

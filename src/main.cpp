@@ -1,3 +1,13 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
+
+
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include "../inc/index.h" 
@@ -12,22 +22,13 @@
 
 // Настройки подключения к Wi-Fi
 const char* ssid = "INFRATEST";          // SSID сети Wi-Fi
-const char* password = "^I={test}.1206";  // Пароль от Wi-Fi
+const char* password = "^I={test}.1206    8";  // Пароль от Wi-Fi
 
-// Веб-сервер
+// Стандартный 80-ый порт веб сервера
 ESP8266WebServer server(80);
 
 
-void clearEEPROM() {
-  EEPROM.begin(512); // Размер EEPROM
-  for (int i = 0; i < 512; i++) {
-      EEPROM.write(i, 0xFF); // Записываем пустые данные (0xFF — стандартное "чистое" состояние)
-  }
-  EEPROM.commit();
-  EEPROM.end();
-  Serial.println("EEPROM очищен!");
-}
-
+// Инициализация точки доступа AP
 void startAccessPoint() {
   loadAPSettings();
   
@@ -47,6 +48,7 @@ void startAccessPoint() {
   
 }
 
+// Обработчик подключения к сети
 void connectToWiFi() {
   WiFi.mode(WIFI_STA);  // Устанавливаем режим станции
   WiFi.begin(ssid, password);
@@ -78,7 +80,7 @@ void setup() {
   connectToWiFi(); // Попытка подключения к Wi-Fi
   
   loadSettingsTemp();  // Загружаем сохранённую установочную температуру
-  loadLastRecvd();
+  loadLastRecvd(); //Загрузка последней команды перед отключением питания
   
   // Инициализация буфера графика (начальные данные)
   for (int i = 0; i < L; i++) {

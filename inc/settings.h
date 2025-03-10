@@ -7,6 +7,7 @@ void saveLastRecvd();
 void loadLastRecvd();
 void saveAPSettings();
 void loadAPSettings();
+void clearEEPROM();
 
 
 #define EEPROM_SIZE 512 

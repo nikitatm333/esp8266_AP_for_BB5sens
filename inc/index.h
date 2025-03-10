@@ -162,7 +162,7 @@ const char MAIN_page[] PROGMEM = R"=====(
             if(data.reached) {
               document.getElementById("tempInput").style.backgroundColor = "rgba(0,255,0,0.5)";
             } else {
-              document.getElementById("tempInput").style.backgroundColor = "rgba(255,165,0,0.5)";
+              document.getElementById("tempInput").style.backgroundColor = "rgba(255, 166, 0, 0.38)";
             }
           })
           .finally(() => { isFetching = false; });
