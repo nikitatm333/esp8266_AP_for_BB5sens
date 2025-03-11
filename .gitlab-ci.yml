@@ -21,11 +21,11 @@ build-job:
     # Создаем папку для артефакта в рабочем каталоге CI
     - mkdir -p $CI_PROJECT_DIR/firmware
     # Копируем итоговый артефакт (например, firmware.hex) в корень проекта, чтобы его можно было сохранить
-    - cp .pio/build/esp01/firmware.hex $CI_PROJECT_DIR/firmware/firmware.bin
+    - cp .pio/build/esp01/firmware.bin $CI_PROJECT_DIR/firmware/firmware.bin
     - ls -l $CI_PROJECT_DIR/firmware
   artifacts:
     paths:
-      - "firmware/firmware.hex"
+      - "firmware/firmware.bin"
     expire_in: 1 week
 
 update-version:
@@ -52,7 +52,7 @@ upload-job:
   script: |
     echo "Uploading ${ARCHIVE_NAME}"
     cd firmware
-    tar czvf ${ARCHIVE_NAME} firmware.hex
+    tar czvf ${ARCHIVE_NAME} firmware.bin
     ls -l
     curl --insecure --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARCHIVE_NAME} "${PACKAGES_API_URL}/${CI_COMMIT_TAG}/${ARCHIVE_NAME}"
 
