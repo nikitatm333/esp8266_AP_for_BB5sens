@@ -1,0 +1,111 @@
+stages:
+  - build
+  - version
+  - release
+
+variables:
+  PACKAGES_API_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
+  ARCHIVE_NAME: "${CI_PROJECT_NAME}_v${CI_COMMIT_TAG}_${CI_PIPELINE_IID}.tar.gz"
+
+build-job:
+  stage: build
+  image: registry-ui.infratest.local/tnv/esp8266_bb5s
+  tags:
+    - docker
+  script:
+    - echo "Собираем проект с помощью PlatformIO..."
+    # Если сборка уже выполнена в Dockerfile, эту команду можно оставить для гарантии актуальности
+    - pio run
+    - echo "Проверяем содержимое сборочной папки:"
+    - ls -l .pio/build/esp01
+    # Создаем папку для артефакта в рабочем каталоге CI
+    - mkdir -p $CI_PROJECT_DIR/firmware
+    # Копируем итоговый артефакт (например, firmware.hex) в корень проекта, чтобы его можно было сохранить
+    - cp .pio/build/esp01/firmware.hex $CI_PROJECT_DIR/firmware/firmware.hex
+    - ls -l $CI_PROJECT_DIR/firmware
+  artifacts:
+    paths:
+      - "firmware/firmware.hex"
+    expire_in: 1 week
+
+update-version:
+  stage: version
+  image: registry-ui.infratest.local/gitlab/gitlab-semantic-versioning:1.0
+  tags:
+    - docker
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+      when: never
+  variables:
+    REQUESTS_CA_BUNDLE: "/etc/ssl/certs/ca-certificates.crt"
+  script:
+    - python3 /version-update/version-update.py
+
+upload-job:
+  stage: release
+  image: alpine/curl
+  tags:
+    - docker
+  rules:
+    - if: $CI_COMMIT_TAG  # этот job запускается только если создан тег
+  script: |
+    echo "Uploading ${ARCHIVE_NAME}"
+    cd firmware
+    tar czvf ${ARCHIVE_NAME} firmware.hex
+    ls -l
+    curl --insecure --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARCHIVE_NAME} "${PACKAGES_API_URL}/${CI_COMMIT_TAG}/${ARCHIVE_NAME}"
+
+release-job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags:
+    - docker
+  rules:
+    - if: $CI_COMMIT_TAG  # этот job запускается только если создан тег
+  needs:
+    - upload-job
+  script:
+    - echo "Creating release..."
+  variables:
+    ADDITIONAL_CA_CERT_BUNDLE: |
+        -----BEGIN CERTIFICATE-----
+        MIIFrzCCA5egAwIBAgIQKtyMQ49nQ7tNsP2UE24iUDANBgkqhkiG9w0BAQsFADBq
+        MQswCQYDVQQGEwJSVTESMBAGA1UEChMJSW5mcmF0ZXN0MRYwFAYDVQQLEw1JVCBE
+        ZXBhcnRtZW50MS8wLQYDVQQDEyZJbmZyYXRlc3QgUm9vdCBDZXJ0aWZpY2F0aW9u
+        IGF1dGhvcml0eTAeFw0yMjAyMDMwNzE2MDZaFw0zNzAyMDMwNzI1NTFaMGoxCzAJ
+        BgNVBAYTAlJVMRIwEAYDVQQKEwlJbmZyYXRlc3QxFjAUBgNVBAsTDUlUIERlcGFy
+        dG1lbnQxLzAtBgNVBAMTJkluZnJhdGVzdCBSb290IENlcnRpZmljYXRpb24gYXV0
+        aG9yaXR5MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAo1kRZTVqNKGb
+        otMuTDvUB803S/GZh+qliPArcNTwxEWPefHjJTmtBySICEYu6+JQvmF8giYKwms6
+        +tTrbNQjeKEYaUpvPTK5z6kAz2FjTyOv6PcRVIAJ78T4a14Y9BSz5O2qVjKHN4aH
+        NYrvILdtyj2qhJNcyDucQXip24vHExKa7TU0J1+fbTz2Zth/wLtCMvF88hKY6nG+
+        r2iIpJpETgn8ch++6FX7f5YnD1O5PBTupvrf2WLB4NKuMVOFkzctPrWonhfnqa28
+        2AK66I0iaMY5c6N5eRr1mu9q33JYK0pjfxAnFiOr4FPCP8rJF1H4vsBLvpKV8iSU
+        NABYOV7HHO8zTmVSpYvyfI15yu3l6b5DefD17W86rd+pSx2Plr7wo2MXJcG3167r
+        gmUokmIA8M9IFdvt2gXZGPcx4J+TS/7cZByVPJz9nkGOPCSRzV4iI7/mkehnkVYe
+        6+4f//y57BFD5jvEZG5ywOW9zEqsLTdB5y4Sqvwb2JhjEm/VFYttgI6Eivg+GhhJ
+        0tRPTwfRDOL+qsWSic9++EYE6ky7XL9r3yxcUcaupQaqfBiv/F6z/GCu8pb7qzp0
+        MrNAH453FOeYm+HBxAlEFcAp6OaDvuraRO6X+a4ovrTeINtF1yTF03RTntOElQSR
+        9YBjkNkwwc/VJs1vv51zkqcfPWBH2AUCAwEAAaNRME8wCwYDVR0PBAQDAgGGMA8G
+        A1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFLcgefeAs2xZkXAbINfBaOsUXr8fMBAG
+        CSsGAQQBgjcVAQQDAgEAMA0GCSqGSIb3DQEBCwUAA4ICAQAYK98AIvcBzHKK3Fjq
+        wbqnXKPhGGqMTT1FfbtgXMaKjg9Bf7Vmb8+j5KmOYX+c4qAoGVkX5gFgG2Tum0Hx
+        Hv+EMHByYvSaP52Fwom39d8PMC09jYBbnfV/gPCBTQOwEf6BtpkHMm2MtmzG430h
+        VJkfjxdprZWUzZTDj8jTZzRTUNy02Ln7RyOt6+2HeYlvKvKSso9+Y8bQmfDkv+oK
+        xbtoSgmOegBti0xyYz2oEd18kp0aYD4mdlBqydO1D8H7oMzvaLS+I9NfRolyMFej
+        U3pDeti3oXF4QhTtcKOPAgrPANUR69K2kBB6RII1YMx/DJm6tcKA40k0FOgt5Hdo
+        VW5UfNtAUze9CXWIqPr1Iwpch/HG1gouUSjfxETdgg3yJmV3lpCl0tHC+zqlI+SZ
+        SzDsJA/V7FtaS0lbsSd3ptcIjLQ5Doex/r5zAbucqUhTAc7yJB8JPGCqhK4GUAu+
+        P73yYrNWgCer2cZ0mZK7icyvOYVimpHcv93dE4Ido42rx8U7XbjnM436mM2vYN4c
+        7sNa2FiP4dOVgXGEbIFxcDoTX9TqRpu5W0IVZzgs0JmlX7HMvk3ma878c4oeR5xG
+        X6jc31qEXDV/wlmKIihH1PjgJVfD+0kMAu/8LKc4JMQnJ7/IS/CfW2OdOeXDiAiB
+        IHIiyabIrYuaYyvLHtfG6X6qMQ==
+        -----END CERTIFICATE-----
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: $CI_COMMIT_MESSAGE
+    assets:
+      links:
+        - name: ${ARCHIVE_NAME}
+          url: "${PACKAGES_API_URL}/${CI_COMMIT_TAG}/${ARCHIVE_NAME}"
