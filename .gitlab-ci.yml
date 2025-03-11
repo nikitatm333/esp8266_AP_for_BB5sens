@@ -21,7 +21,7 @@ build-job:
     # Создаем папку для артефакта в рабочем каталоге CI
     - mkdir -p $CI_PROJECT_DIR/firmware
     # Копируем итоговый артефакт (например, firmware.hex) в корень проекта, чтобы его можно было сохранить
-    - cp .pio/build/esp01/firmware.hex $CI_PROJECT_DIR/firmware/firmware.hex
+    - cp .pio/build/esp01/firmware.hex $CI_PROJECT_DIR/firmware/firmware.bin
     - ls -l $CI_PROJECT_DIR/firmware
   artifacts:
     paths:
