@@ -6,9 +6,9 @@
  * включая уставку температуры, последние полученные данные и параметры Wi-Fi AP.
  */
 
- #include "../inc/settings.h"
+ #include "settings.h"
  #include <EEPROM.h>
- #include "../inc/globals.h"
+ #include "globals.h"
  
  #define EEPROM_SIZE 512   ///< Размер энергонезависимой памяти EEPROM.
  #define SETPOINT_ADDR 0   ///< Адрес хранения уставки температуры.

@@ -9,9 +9,9 @@
  * более чем на 10 секунд, цель считается потерянной.
  */
 
- #include "../inc/temp_control.h"
- #include "../inc/globals.h"
- #include "../inc/settings.h"
+ #include "temp_control.h"
+ #include "globals.h"
+ #include "settings.h"
  #include <Arduino.h>
  #include <math.h>
  

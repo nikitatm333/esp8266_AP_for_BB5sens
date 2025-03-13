@@ -6,9 +6,9 @@
  * Реализовано распознавание команды `RESET`, а также обработка температурных данных.
  */
 
- #include "../inc/serial_processing.h"
- #include "../inc/globals.h"
- #include "../inc/settings.h"
+ #include "serial_processing.h"
+ #include "globals.h"
+ #include "settings.h"
  #include <Arduino.h>
  #include <stdio.h>
  #include <string.h>  // для strcmp

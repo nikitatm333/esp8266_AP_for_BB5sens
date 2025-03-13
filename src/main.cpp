@@ -66,13 +66,13 @@
 
  #include <ESP8266WiFi.h>
  #include <ESP8266WebServer.h>
- #include "../inc/index.h" 
- #include "../inc/graph_page.h"
- #include "../inc/web_handlers.h"
- #include "../inc/settings.h"
- #include "../inc/serial_processing.h"
- #include "../inc/temp_control.h"
- #include "../inc/globals.h"
+ #include "index.h" 
+ #include "graph_page.h"
+ #include "web_handlers.h"
+ #include "settings.h"
+ #include "serial_processing.h"
+ #include "temp_control.h"
+ #include "globals.h"
  #include <EEPROM.h>
  #include <math.h>
  

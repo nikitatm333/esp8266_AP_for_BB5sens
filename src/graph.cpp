@@ -9,9 +9,9 @@
 /* USER CODE END Header */
 
 
-#include "../inc/graph.h"
-#include "../inc/globals.h"
-#include "../inc/graph_page.h"
+#include "graph.h"
+#include "globals.h"
+#include "graph_page.h"
 #include <ESP8266WebServer.h>
 
 // Объявляем внешний веб-сервер

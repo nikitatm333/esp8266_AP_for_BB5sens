@@ -6,14 +6,14 @@
  * включая установку температуры, получение текущих данных и работу с графиками.
  */
 
- #include "../inc/web_handlers.h"
- #include "../inc/index.h"
- #include "../inc/graph_page.h"
- #include "../inc/settings.h"
- #include "../inc/globals.h"
- #include "../inc/temp_control.h"
+ #include "web_handlers.h"
+ #include "index.h"
+ #include "graph_page.h"
+ #include "settings.h"
+ #include "globals.h"
+ #include "temp_control.h"
  #include <ESP8266WebServer.h>
- #include "../inc/graph.h"
+ #include "graph.h"
  #include <EEPROM.h>
  
  /// Объявляем внешний веб-сервер.
