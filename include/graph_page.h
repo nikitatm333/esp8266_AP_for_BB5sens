@@ -100,7 +100,7 @@ const char GRAPH_PAGE[] PROGMEM = R"=====(
   </head>
   <body>
     <div class="container">
-      <h1>График температуры</h1>
+      <h1>Зависимость температуры центрального датчика от времени</h1>
       <div id="svgContainer"></div>
       <div id="sensorValues" style="margin-top:20px;"></div>
       <div class="centerAlign">
