@@ -25,17 +25,18 @@
  static void Process_pline(char *s) {
      // Если получена команда "RESET"
      if (strcmp(s, "RESET") == 0) {
-         Serial.println("Получена команда RESET. Выполняется очистка EEPROM и переход в режим AP.");
-         clearEEPROM();
+
+        Serial.println("RESET command received. Clearing EEPROM and switching to AP mode.");
+        clearEEPROM();
  
-         // Устанавливаем новые параметры точки доступа:
-         strncpy(ap_ssid, "ESP_RESET", sizeof(ap_ssid) - 1);
-         ap_ssid[sizeof(ap_ssid) - 1] = '\0';
-         ap_password[0] = '\0';  ///< Устанавливаем пустой пароль.
-         saveAPSettings();  ///< Сохраняем новые настройки в EEPROM.
+        // Устанавливаем новые параметры точки доступа:
+        strncpy(ap_ssid, "ESP_RESET", sizeof(ap_ssid) - 1);
+        ap_ssid[sizeof(ap_ssid) - 1] = '\0';
+        ap_password[0] = '\0';  ///< Устанавливаем пустой пароль.
+        saveAPSettings();  ///< Сохраняем новые настройки в EEPROM.
  
-         Serial.println("Режим AP установлен с SSID: ESP_RESET, без пароля");
-         return;
+        Serial.println("AP mode set with SSID: ESP_RESET, no password");
+        return;
      }
  
      // Разбор строки с температурными данными:

@@ -104,7 +104,7 @@
          WiFi.softAP(ap_ssid, ap_password);
      }
      
-     Serial.println("Точка доступа запущена");
+     Serial.println("Access point started");
  }
  
  /**
@@ -116,7 +116,7 @@
  void connectToWiFi() {
      WiFi.mode(WIFI_STA);  // Устанавливаем режим станции
      WiFi.begin(ssid, password);
-     Serial.print("Подключение к Wi-Fi");
+     Serial.print("Connecting to Wi-Fi");
  
      unsigned long startAttemptTime = millis(); ///< Время начала попытки подключения.
      const unsigned long wifiTimeout = 10000;   ///< Тайм-аут подключения в миллисекундах (10 секунд).
@@ -127,13 +127,13 @@
      }
  
      if (WiFi.status() == WL_CONNECTED) {
-         Serial.println("\nПодключено к Wi-Fi");
-         Serial.print("IP-адрес: ");
-         Serial.println(WiFi.localIP());
-     } else {
-         Serial.println("\nНе удалось подключиться к Wi-Fi. Запуск режима AP...");
-         startAccessPoint(); // Переход в режим AP
-     }
+        Serial.println("\nConnected to Wi-Fi");
+        Serial.print("IP Address: ");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println("\nFailed to connect to Wi-Fi. Starting AP mode...");
+        startAccessPoint();
+    }
  }
  
  /**
@@ -160,7 +160,7 @@
      initWebHandlers(server);
  
      server.begin();
-     Serial.println("Веб-сервер запущен");
+     Serial.println("Web server started");
  }
  
  /** 

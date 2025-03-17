@@ -193,7 +193,7 @@ const char MAIN_page[] PROGMEM = R"=====(
         }
         document.getElementById("apSettingsForm").addEventListener("submit", function(e) {
           e.preventDefault();
-          if(!confirm("Изменение настроек влечет отлючение от текущей AP. Продолжить?")) return;
+          if(!confirm("Изменение настроек влечет отключение от текущей AP. Продолжить?")) return;
           let formData = new FormData(this);
           fetch('/set_ap', {
             method: 'POST',

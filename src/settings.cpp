@@ -125,6 +125,6 @@
      }
      EEPROM.commit();
      EEPROM.end();
-     Serial.println("EEPROM очищен!");
+     Serial.println("EEPROM cleared!");
  }
  
