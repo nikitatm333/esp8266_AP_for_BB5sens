@@ -22,11 +22,12 @@
  /**
   * @brief Сохраняет уставку температуры в EEPROM.
   */
- void saveSettingsTemp() {
+ bool saveSettingsTemp() {
      EEPROM.begin(EEPROM_SIZE);
      EEPROM.put(SETPOINT_ADDR, SetPoint);
-     EEPROM.commit();
+     bool res = EEPROM.commit();
      EEPROM.end();
+     return res;
  }
  
  /**
@@ -47,14 +48,15 @@
  /**
   * @brief Сохраняет последнее полученное сообщение в EEPROM.
   */
- void saveLastRecvd() {
+ bool saveLastRecvd() {
      EEPROM.begin(EEPROM_SIZE);
      for (size_t i = 0; i < LastRecvd.length(); i++) {
          EEPROM.write(LASTRECVD_ADDR + i, LastRecvd[i]);
      }
      EEPROM.write(LASTRECVD_ADDR + LastRecvd.length(), '\0'); ///< Завершающий символ.
-     EEPROM.commit();
+     bool res = EEPROM.commit();
      EEPROM.end();
+     return res;
  }
  
  /**

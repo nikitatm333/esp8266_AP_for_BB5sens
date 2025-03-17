@@ -62,8 +62,12 @@
          SetPoint = server.arg("temp").toFloat();
          LastRecvd = "Установить " + String(SetPoint) + " °C";
          sendTemperatureToDevice(SetPoint);
-         saveLastRecvd();  ///< Сохранение последней команды в EEPROM.
-         saveSettingsTemp();  ///< Сохранение SetPoint в EEPROM.
+         bool res1 = saveLastRecvd();   // Сохранение последней команды
+         bool res2 = saveSettingsTemp(); // Сохранение SetPoint
+         if (!res1 || !res2) {
+            server.send(500, "text/plain", "Error: Failed to set temperature in device.");
+            return;
+        }
      }
      server.sendHeader("Location", "/");
      server.send(303);

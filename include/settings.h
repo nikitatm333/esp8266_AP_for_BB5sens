@@ -2,8 +2,8 @@
 #define SETTINGS_H
 
 void loadSettingsTemp();
-void saveSettingsTemp();
-void saveLastRecvd();
+bool saveSettingsTemp();
+bool saveLastRecvd();
 void loadLastRecvd();
 void saveAPSettings();
 void loadAPSettings();
